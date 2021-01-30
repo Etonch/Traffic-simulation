@@ -302,13 +302,10 @@ class Automata(Cars, Road):
                                 self.car_location[j + 1][0]-self.car_length
                         vl = self.car_speed[j + 1]
                         al = self.car_acc[j + 1]
-                        try:
 
-                            vsafe = -bmax*t + \
+                        vsafe = -bmax*t + \
                             math.sqrt(bmax * bmax * t*t +
                                       (vl-al)*(vl-al) + 2 * bmax * d)
-                        except ValueError:
-                            print(j,d,self.car_speed[j],vl-al)
 
                         if self.car_type[j+1] == 1:
                             g = 0.9
