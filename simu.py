@@ -249,7 +249,7 @@ class Automata(Cars, Road):
                         danti = min(
                             (d + vanti + self.car_length) / (1 + g), d + vanti)
                         v = int(
-                            min(self.car_speed[j] + acav, vmax, danti, vsafe, d+vl))
+                            min(self.car_speed[j] + acav, vmax, danti, vsafe, d+vl, 0))
 
                     self.car_acc[j] = v - self.car_speed[j]
                     self.car_speed[j] = v
@@ -344,7 +344,7 @@ class Automata(Cars, Road):
                         danti = min(
                             (d + vanti + self.car_length) / (1 + g), d + vanti)
                         v = int(
-                            min(self.car_speed[j] + acav, vmax, danti, vsafe, d+vl))
+                            min(self.car_speed[j] + acav, vmax, danti, vsafe, d+vl, 0))
                     self.car_acc[j] = v - self.car_speed[j]
                     self.car_speed[j] = v
                     if self.timer >= 2000:
@@ -420,7 +420,7 @@ class Automata(Cars, Road):
                         vanti = min(dl, vl-al+1, vmax)
                     danti = min((d + vanti + self.car_length) /
                                 (1 + g), d + vanti)
-                    v = int(min(self.car_speed[j] + acav, vmax, danti, vsafe, d+vl))
+                    v = int(min(self.car_speed[j] + acav, vmax, danti, vsafe, d+vl, 0))
 
                 if self.timer >= 2000: 
                     if (self.car_type[j] == 2):
@@ -523,7 +523,7 @@ class Automata(Cars, Road):
 
                     danti = min((d + vanti + self.car_length) /
                                 (1 + g), d + vanti)
-                    v = int(min(self.car_speed[j] + acav, vmax, danti, vsafe, d+vl))
+                    v = int(min(self.car_speed[j] + acav, vmax, danti, vsafe, d+vl, 0))
 
                 if self.timer >= 2000:
                     if (self.car_type[j] == 2):
