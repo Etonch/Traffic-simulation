@@ -154,8 +154,8 @@ class Automata(Cars, Road):
         dmax = 600                  # 最大通信距离
         kp = 0.45
         kd = 0.25
-        k1 = 0.23
-        k2 = 0.07
+        k1 = 0.14
+        k2 = 0.90
         tc = 0.6
         ta = 1.1
         rear = self.car_num
