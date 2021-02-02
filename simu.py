@@ -547,6 +547,7 @@ class Automata(Cars, Road):
                 else:
                     self.car_acc[j] = v - (self.car_speed[j] - self.car_acc[j])
                     self.car_speed[j] = v
+                j-=1
             if self.timer >= 2000:
                 if head-rear+1 != 0:
                     self.lane_avspeed[i][self.timer -
