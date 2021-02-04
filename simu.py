@@ -187,9 +187,11 @@ class Automata(Cars, Road):
                             self.car_location[rear][0]-self.car_length
                         vl = self.car_speed[rear]
                         al = self.car_acc[rear]
-
-                        vsafe = -bmax + \
-                            math.sqrt(bmax * bmax + (vl-al) * (vl-al) + 2 * bmax * d)
+                        try:
+                            vsafe = -bmax + \
+                                math.sqrt(bmax * bmax + (vl-al) * (vl-al) + 2 * bmax * d)
+                        except ValueError:
+                            print(j,d,self.car_speed[j],vl-al)
                         vanti = min(dl, vl-al+1, vmax)
                         if self.car_type[rear] == 1:
                             g = 1.8
@@ -214,9 +216,11 @@ class Automata(Cars, Road):
                         vl = self.car_speed[rear]
                         al = self.car_acc[rear]
 
-                        vsafe = -bmax*t + \
-                            math.sqrt(bmax * bmax * t*t +
-                                      (vl-al)*(vl-al) + 2 * bmax * d)
+                        try:
+                            vsafe = -bmax + \
+                                math.sqrt(bmax * bmax + (vl-al) * (vl-al) + 2 * bmax * d)
+                        except ValueError:
+                            print(j,d,self.car_speed[j],vl-al)
                         if self.car_type[rear] == 1:
                             g = 0.9
                             acav = int(max(min(
@@ -303,9 +307,12 @@ class Automata(Cars, Road):
                         vl = self.car_speed[j + 1]
                         al = self.car_acc[j + 1]
 
-                        vsafe = -bmax*t + \
-                            math.sqrt(bmax * bmax * t*t +
+                        try:
+                            vsafe = -bmax*t + \
+                                math.sqrt(bmax * bmax * t*t +
                                       (vl-al)*(vl-al) + 2 * bmax * d)
+                        except ValueError:
+                            print(j,d,self.car_speed[j+1],vl-al)
 
                         if self.car_type[j+1] == 1:
                             g = 0.9
@@ -355,199 +362,200 @@ class Automata(Cars, Road):
                     sumspeed += v
                     continue
 
-            j = int(self.head[i])
-            if self.car_location[rear][0]+self.car_speed[rear]-self.car_location[j][0]-self.car_speed[j]+self.lane_length < self.car_length:
-                if self.car_type[j] == 1:  # MV
-                    d = self.car_location[rear][0] + self.lane_length - \
-                        self.car_location[j][0] - self.car_length
-                    dl = self.car_location[rear + 1][0] - \
-                        self.car_location[rear][0] - self.car_length
-                    vl = self.car_speed[rear]
-                    al = self.car_acc[rear]
-                    vsafe = -bmax + \
-                        math.sqrt(bmax * bmax + (vl-al)*(vl-al) + 2 * bmax * d)
-                    vanti = min(dl, vl, vmax)
-                    if self.car_type[rear] == 1:
-                        g = 1.8
-                    else:
-                        g = 2.4
-                    danti = min((d + vanti + self.car_length) /
-                                (1 + g), d + vanti)
-                    v = int(min(self.car_speed[j] + amv, vmax, danti, vsafe))
-                    if v <= danti / T:  # MV随机慢化
-                        p = np.array([0.1, 0.9])
-                    else:
-                        p = np.array([0.1 + 0.85 / (1 + math.e ** (10 * (30 - v))),
-                                      0.9 - 0.85 / (1 + math.e ** (10 * (30 - v)))])
-                    v = np.random.choice([max(v - 1, 0), v], p=p.ravel())
+                j = int(self.head[i])
+                if self.car_location[rear][0]+self.car_speed[rear]-self.car_location[j][0]-self.car_speed[j]+self.lane_length < self.car_length:
+                    if self.car_type[j] == 1:  # MV
+                        d = self.car_location[rear][0] + self.lane_length - \
+                            self.car_location[j][0] - self.car_length
+                        dl = self.car_location[rear + 1][0] - \
+                            self.car_location[rear][0] - self.car_length
+                        vl = self.car_speed[rear]
+                        al = self.car_acc[rear]
+                        vsafe = -bmax + \
+                            math.sqrt(bmax * bmax + (vl-al)*(vl-al) + 2 * bmax * d)
+                        vanti = min(dl, vl, vmax)
+                        if self.car_type[rear] == 1:
+                            g = 1.8
+                        else:
+                            g = 2.4
+                        danti = min((d + vanti + self.car_length) /
+                                    (1 + g), d + vanti)
+                        v = int(min(self.car_speed[j] + amv, vmax, danti, vsafe))
+                        if v <= danti / T:  # MV随机慢化
+                            p = np.array([0.1, 0.9])
+                        else:
+                            p = np.array([0.1 + 0.85 / (1 + math.e ** (10 * (30 - v))),
+                                          0.9 - 0.85 / (1 + math.e ** (10 * (30 - v)))])
+                        v = np.random.choice([max(v - 1, 0), v], p=p.ravel())
 
-                if self.car_type[j] == 2:
-                    d = self.car_location[rear][0] + self.lane_length - \
-                        self.car_location[j][0] - self.car_length
-                    dl = self.car_location[rear + 1][0] - \
-                        self.car_location[rear][0] - self.car_length
-                    vl = self.car_speed[rear]
-                    al = self.car_acc[rear]
-                    vsafe = -bmax * t + \
-                        math.sqrt(bmax * bmax * t * t + (vl-al) * (vl-al) + 2 * bmax * d)
-                    if self.car_type[rear] == 1:
-                        g = 0.9
-                        acav = int(
-                            max(min(amax, k1 * (d - ta * self.car_speed[j]) + k2 * (vl - self.car_speed[j])), -bmax))
-                    else:
-                        g = 0
-                        acav = int(max(-bmax, min(amax, kp * (d - tc * self.car_speed[j]) + kd * (
-                            vl - self.car_speed[j] - tc * self.car_acc[j]))))
+                    if self.car_type[j] == 2:
+                        d = self.car_location[rear][0] + self.lane_length - \
+                            self.car_location[j][0] - self.car_length
+                        dl = self.car_location[rear + 1][0] - \
+                            self.car_location[rear][0] - self.car_length
+                        vl = self.car_speed[rear]
+                        al = self.car_acc[rear]
+                        vsafe = -bmax * t + \
+                            math.sqrt(bmax * bmax * t * t + (vl-al) * (vl-al) + 2 * bmax * d)
+                        if self.car_type[rear] == 1:
+                            g = 0.9
+                            acav = int(
+                                max(min(amax, k1 * (d - ta * self.car_speed[j]) + k2 * (vl - self.car_speed[j])), -bmax))
+                        else:
+                            g = 0
+                            acav = int(max(-bmax, min(amax, kp * (d - tc * self.car_speed[j]) + kd * (
+                                 vl - self.car_speed[j] - tc * self.car_acc[j]))))
 
-                    if self.car_type[rear]==2:
-                        sum = 0
-                        n = 0
-                        if self.car_location[j][0] + dmax < self.lane_length:
+                        if self.car_type[rear]==2:
+                            sum = 0
+                            n = 0
+                            if self.car_location[j][0] + dmax < self.lane_length:
+                                vanti = min(dl, vl-al+1, vmax)
+                            else:
+                                for m in range(rear, head):
+                                    if self.car_type[m] == 2 and \
+                                            (self.car_location[m][0] <= self.car_location[j][0] + dmax - self.lane_length or
+                                            self.car_location[j][0]<self.car_location[m][0] <= self.car_location[j][0] + dmax):
+                                        sum += self.car_speed[m]
+                                        n = n + 1
+                            
+                                if n!=0:
+                                    vanti = min(dl, vl, vmax, sum / n)
+                                else:
+                                    vanti = min(dl, vl-al+1, vmax)
+                        else:
                             vanti = min(dl, vl-al+1, vmax)
+                        danti = min((d + vanti + self.car_length) /
+                                    (1 + g), d + vanti)
+                        v = int(
+                                max(min(self.car_speed[j] + acav, vmax, danti, vsafe, d+vl),0))
+
+                    if self.timer >= 2000: 
+                        if (self.car_type[j] == 2):
+                            cav_sum -= self.car_speed[j]
+                            sumspeed -= self.car_speed[j]
+                            self.car_acc[j] = v-(self.car_speed[j]-self.car_acc[j])
+                            self.car_speed[j] = v
+                            sumspeed += self.car_speed[j]
+                            cav_sum += self.car_speed[j]
+                        elif (self.car_type[j] == 1):
+                            mv_sum -= self.car_speed[j]
+                            sumspeed -= self.car_speed[j]
+                            self.car_acc[j] = v - \
+                                (self.car_speed[j] - self.car_acc[j])
+                            self.car_speed[j] = v
+                            sumspeed += self.car_speed[j]
+                            mv_sum += self.car_speed[j]
+                    else:
+                        self.car_acc[j] = v - (self.car_speed[j] - self.car_acc[j])
+                        self.car_speed[j] = v
+
+                j = int(self.head[i])-1
+                while (self.car_location[j+1][0]+self.car_speed[j+1]-self.car_location[j][0]-self.car_speed[j] < self.car_length):
+                    if self.car_type[j] == 1:  # MV
+                        d = self.car_location[j + 1][0] - \
+                            self.car_location[j][0] - self.car_length
+                        if j + 2 <= head:
+                            dl = self.car_location[j + 2][0] - \
+                                self.car_location[j + 1][0] - self.car_length
                         else:
-                            for m in range(rear, head):
-                                if self.car_type[m] == 2 and \
-                                        (self.car_location[m][0] <= self.car_location[j][0] + dmax - self.lane_length or
-                                        self.car_location[j][0]<self.car_location[m][0] <= self.car_location[j][0] + dmax):
-                                    sum += self.car_speed[m]
-                                    n = n + 1
-                            
-                            if n!=0:
-                                vanti = min(dl, vl, vmax, sum / n)
-                            else:
-                                vanti = min(dl, vl-al+1, vmax)
-                    else:
-                        vanti = min(dl, vl-al+1, vmax)
-                    danti = min((d + vanti + self.car_length) /
-                                (1 + g), d + vanti)
-                    v = int(
-                            max(min(self.car_speed[j] + acav, vmax, danti, vsafe, d+vl),0))
-
-                if self.timer >= 2000: 
-                    if (self.car_type[j] == 2):
-                        cav_sum -= self.car_speed[j]
-                        sumspeed -= self.car_speed[j]
-                        self.car_acc[j] = v-(self.car_speed[j]-self.car_acc[j])
-                        self.car_speed[j] = v
-                        sumspeed += self.car_speed[j]
-                        cav_sum += self.car_speed[j]
-                    elif (self.car_type[j] == 1):
-                        mv_sum -= self.car_speed[j]
-                        sumspeed -= self.car_speed[j]
-                        self.car_acc[j] = v - \
-                            (self.car_speed[j] - self.car_acc[j])
-                        self.car_speed[j] = v
-                        sumspeed += self.car_speed[j]
-                        mv_sum += self.car_speed[j]
-                else:
-                    self.car_acc[j] = v - (self.car_speed[j] - self.car_acc[j])
-                    self.car_speed[j] = v
-
-            j = int(self.head[i])-1
-            while (self.car_location[j+1][0]+self.car_speed[j+1]-self.car_location[j][0]-self.car_speed[j] < self.car_length):
-                if self.car_type[j] == 1:  # MV
-                    d = self.car_location[j + 1][0] - \
-                        self.car_location[j][0] - self.car_length
-                    if j + 2 <= head:
-                        dl = self.car_location[j + 2][0] - \
-                            self.car_location[j + 1][0] - self.car_length
-                    else:
-                        dl = self.car_location[rear][0] + self.lane_length - self.car_location[j + 1][
-                            0] - self.car_length
-                    vl = self.car_speed[j + 1]
-                    al = self.car_acc[j + 1]
-                    vsafe = -bmax + \
-                        math.sqrt(bmax * bmax + (vl-al) * (vl-al) + 2 * bmax * d)
-                    vanti = min(dl, vl, vmax)
-                    if self.car_type[j + 1] == 1:
-                        g = 1.8
-                    else:
-                        g = 2.4
-                    danti = min((d + vanti + self.car_length) /
-                                (1 + g), d + vanti)
-                    v = int(min(self.car_speed[j] + amv, vmax, danti, vsafe))
-                    if v <= danti / T:  # MV随机慢化
-                        p = np.array([0.1, 0.9])
-                    else:
-                        p = np.array([0.1 + 0.85 / (1 + math.e ** (10 * (30 - v))),
-                                      0.9 - 0.85 / (1 + math.e ** (10 * (30 - v)))])
-                    v = np.random.choice([max(v - 1, 0), v], p=p.ravel())
-
-                if self.car_type[j] == 2:
-                    d = self.car_location[j + 1][0] - \
-                        self.car_location[j][0] - self.car_length
-                    if j + 2 <= head:
-                        dl = self.car_location[j + 2][0] - \
-                            self.car_location[j + 1][0] - self.car_length
-                    else:
-                        dl = self.car_location[rear][0] + self.lane_length - self.car_location[j + 1][
-                            0] - self.car_length
-                    vl = self.car_speed[j + 1]
-                    al = self.car_acc[j + 1]
-                    vsafe = -bmax * t + \
-                        math.sqrt(bmax * bmax * t * t + (vl-al)*(vl-al) + 2 * bmax * d)
-                    if self.car_type[j + 1] == 1:
-                        g = 0.9
-                        acav = int(
-                            max(min(amax, k1 * (d - ta * self.car_speed[j]) + k2 * (vl - self.car_speed[j])), -bmax))
-                    else:
-                        g = 0
-                        acav = int(max(-bmax, min(amax, kp * (d - tc * self.car_speed[j]) + kd * (
-                            vl - self.car_speed[j] - tc * self.car_acc[j]))))
-
-                    if self.car_type[j+1]==2:
-                        sum = 0
-                        n = 0
-                        if self.car_location[j][0] + dmax < self.lane_length:
-                            for m in range(j+1, head):
-                                if self.car_type[m] == 2 and \
-                                        (self.car_location[m][0] <= self.car_location[j][
-                                            0] + dmax - self.lane_length or
-                                         self.car_location[j][0]<self.car_location[m][0] <= self.car_location[j][0] +dmax):
-                                    sum += self.car_speed[m]
-                                    n = n + 1
+                            dl = self.car_location[rear][0] + self.lane_length - self.car_location[j + 1][
+                                0] - self.car_length
+                        vl = self.car_speed[j + 1]
+                        al = self.car_acc[j + 1]
+                        vsafe = -bmax + \
+                            math.sqrt(bmax * bmax + (vl-al) * (vl-al) + 2 * bmax * d)
+                        vanti = min(dl, vl, vmax)
+                        if self.car_type[j + 1] == 1:
+                            g = 1.8
                         else:
-                            for m in range(rear, head):
-                                if self.car_type[m] == 2 and \
-                                        (self.car_location[m][0] <= self.car_location[j][
-                                            0] + dmax - self.lane_length or
-                                         self.car_location[j][0]<self.car_location[m][0] <= self.car_location[j][0] +dmax):
-                                    sum += self.car_speed[m]
-                                    n = n + 1
-                            
-                            if n!=0:
-                                vanti = min(dl, vl, vmax, sum / n)
+                            g = 2.4
+                        danti = min((d + vanti + self.car_length) /
+                                    (1 + g), d + vanti)
+                        v = int(min(self.car_speed[j] + amv, vmax, danti, vsafe))
+                        if v <= danti / T:  # MV随机慢化
+                            p = np.array([0.1, 0.9])
+                        else:
+                            p = np.array([0.1 + 0.85 / (1 + math.e ** (10 * (30 - v))),
+                                        0.9 - 0.85 / (1 + math.e ** (10 * (30 - v)))])
+                        v = np.random.choice([max(v - 1, 0), v], p=p.ravel())
+
+                    if self.car_type[j] == 2:
+                        d = self.car_location[j + 1][0] - \
+                            self.car_location[j][0] - self.car_length
+                        if j + 2 <= head:
+                            dl = self.car_location[j + 2][0] - \
+                                self.car_location[j + 1][0] - self.car_length
+                        else:
+                            dl = self.car_location[rear][0] + self.lane_length - self.car_location[j + 1][
+                                0] - self.car_length
+                        vl = self.car_speed[j + 1]
+                        al = self.car_acc[j + 1]
+                        vsafe = -bmax * t + \
+                            math.sqrt(bmax * bmax * t * t + (vl-al)*(vl-al) + 2 * bmax * d)
+                        if self.car_type[j + 1] == 1:
+                            g = 0.9
+                            acav = int(
+                                max(min(amax, k1 * (d - ta * self.car_speed[j]) + k2 * (vl - self.car_speed[j])), -bmax))
+                        else:
+                            g = 0
+                            acav = int(max(-bmax, min(amax, kp * (d - tc * self.car_speed[j]) + kd * (
+                                vl - self.car_speed[j] - tc * self.car_acc[j]))))
+
+                        if self.car_type[j+1]==2:
+                            sum = 0
+                            n = 0
+                            if self.car_location[j][0] + dmax < self.lane_length:
+                                for m in range(j+1, head):
+                                    if self.car_type[m] == 2 and \
+                                            (self.car_location[m][0] <= self.car_location[j][
+                                                0] + dmax - self.lane_length or
+                                            self.car_location[j][0]<self.car_location[m][0] <= self.car_location[j][0] +dmax):
+                                        sum += self.car_speed[m]
+                                        n = n + 1
                             else:
-                                vanti = min(dl, vl-al+1, vmax)
+                                for m in range(rear, head):
+                                    if self.car_type[m] == 2 and \
+                                            (self.car_location[m][0] <= self.car_location[j][
+                                                0] + dmax - self.lane_length or
+                                            self.car_location[j][0]<self.car_location[m][0] <= self.car_location[j][0] +dmax):
+                                        sum += self.car_speed[m]
+                                        n = n + 1
+                            
+                                if n!=0:
+                                    vanti = min(dl, vl, vmax, sum / n)
+                                else:
+                                    vanti = min(dl, vl-al+1, vmax)
+                        else:
+                            vanti = min(dl, vl-al+1, vmax)
+
+                        danti = min((d + vanti + self.car_length) /
+                                    (1 + g), d + vanti)
+                        v = int(
+                                max(min(self.car_speed[j] + acav, vmax, danti, vsafe, d+vl),0))
+
+                    if self.timer >= 2000:
+                        if (self.car_type[j] == 2):
+                            cav_sum -= self.car_speed[j]
+                            sumspeed -= self.car_speed[j]
+                            self.car_acc[j] = v - \
+                                (self.car_speed[j] - self.car_acc[j])
+                            self.car_speed[j] = v
+                            sumspeed += self.car_speed[j]
+                            cav_sum += self.car_speed[j]
+                        elif (self.car_type[j] == 1):
+                            mv_sum -= self.car_speed[j]
+                            sumspeed -= self.car_speed[j]
+                            self.car_acc[j] = v - \
+                                (self.car_speed[j] - self.car_acc[j])
+                            self.car_speed[j] = v
+                            sumspeed += self.car_speed[j]
+                            mv_sum += self.car_speed[j]
                     else:
-                        vanti = min(dl, vl-al+1, vmax)
-
-                    danti = min((d + vanti + self.car_length) /
-                                (1 + g), d + vanti)
-                    v = int(
-                            max(min(self.car_speed[j] + acav, vmax, danti, vsafe, d+vl),0))
-
-                if self.timer >= 2000:
-                    if (self.car_type[j] == 2):
-                        cav_sum -= self.car_speed[j]
-                        sumspeed -= self.car_speed[j]
-                        self.car_acc[j] = v - \
-                            (self.car_speed[j] - self.car_acc[j])
+                        self.car_acc[j] = v - (self.car_speed[j] - self.car_acc[j])
                         self.car_speed[j] = v
-                        sumspeed += self.car_speed[j]
-                        cav_sum += self.car_speed[j]
-                    elif (self.car_type[j] == 1):
-                        mv_sum -= self.car_speed[j]
-                        sumspeed -= self.car_speed[j]
-                        self.car_acc[j] = v - \
-                            (self.car_speed[j] - self.car_acc[j])
-                        self.car_speed[j] = v
-                        sumspeed += self.car_speed[j]
-                        mv_sum += self.car_speed[j]
-                else:
-                    self.car_acc[j] = v - (self.car_speed[j] - self.car_acc[j])
-                    self.car_speed[j] = v
-                j-=1
+                    j-=1
+            
             if self.timer >= 2000:
                 if head-rear+1 != 0:
                     self.lane_avspeed[i][self.timer -
@@ -555,6 +563,7 @@ class Automata(Cars, Road):
                 else:
                     self.lane_avspeed[i][self.timer - 2000] = 0
             sumspeed = 0
+
         if self.timer >= 2000:
             if self.MV_num!=0:
                 self.MV_avspeed.append(mv_sum/self.MV_num)
@@ -1155,7 +1164,7 @@ class Automata(Cars, Road):
                 #worksheet.write(self.timer-1999,4,self.change_in_nums[3])
             # self.print_road()
             # self.print_cars()
-            #print(_)
+            print(_)
 
         worksheet = workbook.add_worksheet('Sheet 1')
         worksheet.write(0, 2, '小时流量')
